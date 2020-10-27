@@ -44,6 +44,15 @@ token=$(docker-compose exec -u 1001 -T nestedA-agent \
 validation_result=$(docker-compose exec -u 1001 -T nestedB-agent \
     /opt/spire/bin/spire-agent api validate jwt -audience testIt  -svid "${token}" -socketPath /opt/spire/sockets/workload_api.sock)
 
+
+if echo $validation_result | grep -qe "SVID is valid."; then
+   echo "${green}Success${nn}"
+   exit 0
+fi
+
+validation_result=$(docker-compose exec -u 1001 -T nestedC-agent \
+    /opt/spire/bin/spire-agent api validate jwt -audience testIt  -svid "${token}" -socketPath /opt/spire/sockets/workload_api.sock)
+
 if echo $validation_result | grep -qe "SVID is valid."; then
    echo "${green}Success${nn}"
    exit 0

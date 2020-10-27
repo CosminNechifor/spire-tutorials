@@ -60,4 +60,14 @@ docker-compose exec -T nestedB-server \
     -selector "unix:uid:1001" \
     -ttl 0
 
-check-entry-is-propagated nestedB-agent spiffe://example.org/nestedB/workload
+check-entry-is-propagated nestedC-agent spiffe://example.org/nestedC/workload
+# Workload for nestedC deployment
+log "creating nestedC workload registration entry..."
+docker-compose exec -T nestedC-server \
+    /opt/spire/bin/spire-server entry create \
+    -parentID "spiffe://example.org/spire/agent/x509pop/$(fingerprint nestedC/agent/agent.crt.pem)" \
+    -spiffeID "spiffe://example.org/nestedC/workload" \
+    -selector "unix:uid:1001" \
+    -ttl 0
+
+check-entry-is-propagated nestedC-agent spiffe://example.org/nestedC/workload

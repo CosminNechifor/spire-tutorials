@@ -87,6 +87,15 @@ docker-compose exec -T root-server \
 
 check-entry-is-propagated root-agent spiffe://example.org/nestedB
 
+docker-compose exec -T root-server \
+    /opt/spire/bin/spire-server entry create \
+    -parentID "spiffe://example.org/spire/agent/x509pop/$(fingerprint root/agent/agent.crt.pem)" \
+    -spiffeID "spiffe://example.org/nestedC" \
+    -selector "docker:label:org.example.name:nestedC-server" \
+    -downstream \
+    -ttl 3600
+
+check-entry-is-propagated root-agent spiffe://example.org/nestedC
 
 # Starts nestedA SPIRE deployment
 log "Generate certificates for the nestedA deployment"
@@ -114,3 +123,16 @@ docker-compose exec -T nestedB-server /opt/spire/bin/spire-server bundle show > 
 
 log "Starting nestedB-agent..."
 docker-compose up -d nestedB-agent
+
+# Starts nestedB SPIRE deployment
+log "Generate certificates for the nestedC deployment"
+setup nestedC/server nestedC/agent
+
+log "Starting nestedC-server.."
+docker-compose up -d nestedC-server
+
+log "bootstrapping nestedC agent..."
+docker-compose exec -T nestedC-server /opt/spire/bin/spire-server bundle show > nestedC/agent/bootstrap.crt
+
+log "Starting nestedC-agent..."
+docker-compose up -d nestedC-agent

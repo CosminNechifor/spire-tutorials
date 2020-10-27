@@ -64,3 +64,26 @@ services:
       - ./nestedB/agent:/opt/spire/conf/agent
       - /var/run/:/var/run/
     command: ["-config", "/opt/spire/conf/agent/agent.conf"]
+  #NestedC
+  nestedC-server:
+    # Share the host pid namespace so this server can be attested by the root agent
+    pid: "host"
+    image: gcr.io/spiffe-io/spire-server:0.11.0
+    hostname: nestedC-server
+    depends_on: ["root-server","root-agent"]
+    labels:
+      # Label to attest server against root-agent
+      - org.example.name=nestedC-server
+    volumes:
+      # Add root-agent socket
+      - ./sharedRootSocket:/opt/spire/sockets
+      - ./nestedC/server:/opt/spire/conf/server
+    command: ["-config", "/opt/spire/conf/server/server.conf"]
+  nestedC-agent:
+    image: gcr.io/spiffe-io/spire-agent:0.11.0
+    hostname: nestedC-agent
+    depends_on: ["nestedC-server"]
+    volumes:
+      - ./nestedC/agent:/opt/spire/conf/agent
+      - /var/run/:/var/run/
+    command: ["-config", "/opt/spire/conf/agent/agent.conf"]
